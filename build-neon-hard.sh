@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# NOTE: actually building just soft (non-hard) variant as we don't have any fp logic here it seems
+
+echo $PATH
+
+pushd ./crypto
+./build-neon-hard.sh
+res=$?
+popd
+echo
+if [ $res -ne 0 ]; then
+    exit $res
+fi
+
+export ANDROID_NDK=/opt/android-ndk-r17c
+ABI=armeabi-v7a
+MINSDKVERSION=21
+OTHER_ARGS=
+
+echo Using ANDROID_NDK=$ANDROID_NDK
+# NOTE: needed to force cmake to regenerate build scripts
+rm -f CMakeCache.txt  
+rm -fR build/$ABI
+mkdir -p build/$ABI
+
+cmake \
+    -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+    -DANDROID_ABI=$ABI \
+    -DANDROID_NATIVE_API_LEVEL=$MINSDKVERSION \
+    -DENABLE_TESTING=Off \
+    -DENABLE_PROGRAMS=Off \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS=-Os \
+    
+cmake --build . -j8
+
+if [ $? -ne 0 ]; then
+    exit $?
+fi
+
+mv -v library/*.a build/$ABI/
