@@ -12,6 +12,8 @@ rm -f CMakeCache.txt
 rm -fR build/$ABI
 mkdir -p build/$ABI
 
+# NOTE: c flags modified in cmakelists.txt as we can't override them here, just prepend
+
 cmake \
     -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
     -DANDROID_ABI=$ABI \
@@ -19,8 +21,7 @@ cmake \
     -DENABLE_TESTING=Off \
     -DENABLE_PROGRAMS=Off \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_FLAGS=-Os \
-    
+
 cmake --build . -j8 $*                          
 
 if [ $? -ne 0 ]; then
