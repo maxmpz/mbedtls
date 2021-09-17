@@ -1,13 +1,22 @@
 #!/bin/bash
 
+pushd ./crypto
+./build-arm64.sh
+res=$?
+popd
+echo 
+if [ $res -ne 0 ]; then
+    exit $res
+fi
+
 export ANDROID_NDK=/opt/android-ndk-r20
 ABI=arm64-v8a
 MINSDKVERSION=21
+OTHER_ARGS=
 
 echo Using ANDROID_NDK=$ANDROID_NDK
-
 # NOTE: needed to force cmake to regenerate build scripts
-rm -f CMakeCache.txt
+rm -f CMakeCache.txt  
 rm -fR build/$ABI
 mkdir -p build/$ABI
 
@@ -20,13 +29,16 @@ cmake \
     -DENABLE_TESTING=Off \
     -DENABLE_PROGRAMS=Off \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_FLAGS="-flto=full -Wno-unused-command-line-argument"\
+
+
+#    -DCMAKE_C_FLAGS="-flto=full -Wno-unused-command-line-argument"\
     
 
-cmake --build . -j8 $*                          
+#--verbose
+cmake --build . -j8 $*
 
 if [ $? -ne 0 ]; then
     exit $?
-fi    
+fi
 
-mv -v library/*.a build/$ABI/
+mv -v library/*.a build/$ABI/        
